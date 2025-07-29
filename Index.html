@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="EvacSafe - Adviesbureau voor ontruimingsalarminstallaties type A en B. Specialist in brandveiligheid, PvE en documentatie.">
+  <meta name="keywords" content="EvacSafe, ontruimingsalarminstallatie, brandveiligheid, OAI, type A, type B, PvE, advies">
+  <title>EvacSafe - Brandveiligheid & Ontruimingsadvies</title>
+  <style>
+    * {margin: 0; padding: 0; box-sizing: border-box;}
+    body {font-family: Arial, sans-serif; line-height: 1.6; background: #f7f7f7; color: #333;}
+    header {background: #ff4c00; color: #fff; padding: 20px; text-align: center;}
+    header img {max-width: 180px; margin-bottom: 10px;}
+    nav {background: #333; padding: 10px;}
+    nav ul {list-style: none; display: flex; justify-content: center; flex-wrap: wrap;}
+    nav ul li {margin: 5px;}
+    nav ul li a {color: #fff; text-decoration: none; padding: 8px 15px; display: block; transition: background 0.3s;}
+    nav ul li a:hover {background: #ff4c00;}
+    .container {max-width: 1200px; margin: auto; padding: 20px;}
+    section {padding: 40px 20px; background: #fff; margin-bottom: 20px; border-radius: 8px;}
+    h1, h2 {color: #ff4c00; margin-bottom: 10px;}
+    .services {display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;}
+    .service-box {background: #f1f1f1; padding: 20px; border-radius: 8px; transition: transform 0.3s;}
+    .service-box:hover {transform: scale(1.03);}
+    footer {background: #333; color: #fff; text-align: center; padding: 15px; margin-top: 20px;}
+    form {display: grid; gap: 10px; max-width: 500px; margin: auto;}
+    input, textarea {padding: 10px; border: 1px solid #ccc; border-radius: 5px; width: 100%;}
+    button {background: #ff4c00; color: #fff; padding: 10px; border: none; border-radius: 5px; cursor: pointer;}
+    button:hover {background: #e04300;}
+    @media (max-width: 768px) {
+      nav ul {flex-direction: column;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="data:image/png;base64,{{LOGO_BASE64}}" alt="EvacSafe Logo">
+    <h1>EvacSafe</h1>
+    <p>Adviesbureau voor ontruimingsalarminstallaties & brandveiligheid</p>
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="#home">Home</a></li>
+      <li><a href="#diensten">Diensten</a></li>
+      <li><a href="#over-ons">Over ons</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+    <section id="home">
+      <h2>Welkom bij EvacSafe</h2>
+      <p>EvacSafe is gespecialiseerd in brandveiligheid en ontruimingsalarminstallaties type A en B. Wij bieden professioneel advies, ontwerp en documentatie voor bedrijven, instellingen en overheden in de Randstad en daarbuiten.</p>
+    </section>
+
+    <section id="diensten">
+      <h2>Diensten</h2>
+      <div class="services">
+        <div class="service-box">
+          <h3>Ontruimingsalarminstallaties (OAI)</h3>
+          <p>Advies, ontwerp en documentatie voor OAI type A en B volgens NEN2575.</p>
+        </div>
+        <div class="service-box">
+          <h3>Programma van Eisen (PvE)</h3>
+          <p>Opstellen en beoordelen van PvE’s voor brandveiligheid en ontruimingssystemen.</p>
+        </div>
+        <div class="service-box">
+          <h3>Onderhoud & Inspectie</h3>
+          <p>Controle en rapportage van bestaande ontruimingsinstallaties volgens de norm.</p>
+        </div>
+      </div>
+    </section>
+
+    <section id="over-ons">
+      <h2>Over EvacSafe</h2>
+      <p>Met jarenlange ervaring in brandveiligheid en evacuatiesystemen, biedt EvacSafe onafhankelijk advies en complete documentatie. Wij werken samen met bedrijven, scholen, zorginstellingen en overheidsgebouwen om veiligheid te waarborgen.</p>
+    </section>
+
+    <section id="contact">
+      <h2>Contact</h2>
+      <form>
+        <input type="text" name="naam" placeholder="Uw naam" required>
+        <input type="email" name="email" placeholder="Uw e-mail" required>
+        <textarea name="bericht" placeholder="Uw bericht" rows="5" required></textarea>
+        <button type="submit">Verstuur</button>
+      </form>
+    </section>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 EvacSafe - Brandveiligheid & Ontruimingsadvies</p>
+  </footer>
+</body>
+</html>
