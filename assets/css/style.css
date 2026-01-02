@@ -1,6 +1,4 @@
-# Retry creating the style.css file cleanly
 
-css_content = """
 :root{
   --bg:#0b1116;
   --panel:#0f1a22;
