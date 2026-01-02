@@ -107,10 +107,3 @@ footer{margin-top:18px;border-top:1px solid var(--line);background:rgba(0,0,0,.2
 @media (max-width:920px){
   .hero-grid{grid-template-columns:1fr}
 }
-"""
-
-path = "/mnt/data/style.css"
-with open(path, "w", encoding="utf-8") as f:
-    f.write(css_content)
-
-path
