@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="PO OAI">
+  <meta name="theme-color" content="#111">
+  <title>PO OAI — EvacSafe</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+    :root {
+      --bg:       #111314;
+      --surface:  #1a1d1f;
+      --surface2: #212529;
+      --border:   #2c3033;
+      --border2:  #3a3f44;
+      --acc:      #F79646;
+      --acc2:     rgba(247,150,70,.12);
+      --green:    #22c55e;
+      --green2:   rgba(34,197,94,.12);
+      --red:      #ef4444;
+      --red2:     rgba(239,68,68,.12);
+      --amber:    #f59e0b;
+      --amber2:   rgba(245,158,11,.12);
+      --text:     #e2e8f0;
+      --muted:    #64748b;
+      --mono:     'DM Mono', monospace;
+      --sans:     'DM Sans', sans-serif;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      font-size: 15px;
+      line-height: 1.5;
+      min-height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ─── HEADER ─── */
+    .app-header {
+      position: sticky; top: 0; z-index: 200;
+      background: rgba(17,19,20,.96);
+      backdrop-filter: blur(16px) saturate(180%);
+      -webkit-backdrop-filter: blur(16px) saturate(180%);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 18px 10px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .app-brand { display: flex; flex-direction: column; gap: 1px; }
+    .app-brand-main { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--acc); letter-spacing: .06em; }
+    .app-brand-sub  { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .08em; }
+    .header-right   { display: flex; align-items: center; gap: 10px; }
+    .conn-pill {
+      display: flex; align-items: center; gap: 5px;
+      padding: 4px 10px; border-radius: 20px;
+      border: 1px solid var(--border2);
+      font-family: var(--mono); font-size: 10px; color: var(--muted);
+      cursor: pointer; transition: all .2s;
+    }
+    .conn-pill.ok { border-color: rgba(34,197,94,.4); color: var(--green); }
+    .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); flex-shrink: 0; }
+    .conn-pill.ok .conn-dot { background: var(--green); box-shadow: 0 0 6px var(--green); }
+
+    /* ─── SCROLL TABS ─── */
+    .scroll-tabs {
+      display: flex; overflow-x: auto; scroll-snap-type: x mandatory;
+      background: var(--surface); border-bottom: 1px solid var(--border);
+      scrollbar-width: none;
+    }
+    .scroll-tabs::-webkit-scrollbar { display: none; }
+    .stab {
+      flex-shrink: 0; scroll-snap-align: start;
+      padding: 11px 18px;
+      font-family: var(--mono); font-size: 11px; font-weight: 500;
+      color: var(--muted); letter-spacing: .06em; white-space: nowrap;
+      border: none; background: none; cursor: pointer;
+      border-bottom: 2px solid transparent; transition: all .2s;
+    }
+    .stab.active { color: var(--acc); border-bottom-color: var(--acc); }
+
+    /* ─── PAGES ─── */
+    .page { display: none; padding: 18px 18px 100px; }
+    .page.active { display: block; }
+
+    /* ─── SECTION HEADING ─── */
+    .sec-head {
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      color: var(--acc); letter-spacing: .12em; text-transform: uppercase;
+      padding: 14px 0 8px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    /* ─── FIELD ─── */
+    .field { margin-bottom: 14px; }
+    .field-lbl {
+      font-size: 11px; color: var(--muted); margin-bottom: 5px;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .field-lbl .unit { font-family: var(--mono); color: var(--acc); font-size: 10px; }
+
+    input[type=text], input[type=date], input[type=time], input[type=number], textarea, select {
+      width: 100%; background: var(--surface2);
+      border: 1px solid var(--border); border-radius: 7px;
+      color: var(--text); font-family: var(--sans); font-size: 15px;
+      padding: 11px 13px; outline: none; transition: border-color .18s;
+      -webkit-appearance: none; appearance: none;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--acc); }
+    input[type=number] { font-family: var(--mono); font-size: 17px; text-align: right; }
+    textarea { resize: none; line-height: 1.5; }
+    select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2364748b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 13px center; padding-right: 36px; }
+    select option { background: #1a1d1f; }
+
+    /* ─── METING INLINE ─── */
+    .meting-row {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; padding: 10px 13px; margin-bottom: 8px;
+    }
+    .meting-row .mlbl { flex: 1; font-size: 13px; color: var(--text); }
+    .meting-row .munit { font-family: var(--mono); font-size: 10px; color: var(--acc); min-width: 24px; text-align: right; }
+    .meting-row input[type=number] {
+      width: 80px; flex-shrink: 0; background: transparent; border: none;
+      border-bottom: 1px solid var(--border2); border-radius: 0;
+      padding: 2px 0; font-size: 16px; text-align: right;
+    }
+    .meting-row input[type=number]:focus { border-bottom-color: var(--acc); }
+
+    /* ─── CHECKBOX RIJEN (centrale testen) ─── */
+    .check-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 14px; }
+    .check-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 11px 13px; border-radius: 7px;
+      background: var(--surface2); border: 1px solid transparent;
+      cursor: pointer; transition: all .15s;
+    }
+    .check-row.checked { background: var(--green2); border-color: rgba(34,197,94,.25); }
+    .check-box {
+      width: 20px; height: 20px; border-radius: 5px; flex-shrink: 0;
+      border: 1.5px solid var(--border2); background: var(--surface);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; transition: all .15s;
+    }
+    .check-row.checked .check-box { background: var(--green); border-color: var(--green); }
+    .check-lbl { font-size: 14px; flex: 1; }
+
+    /* ─── OAC KAART ─── */
+    .oac-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; margin-bottom: 16px; overflow: hidden;
+    }
+    .oac-head {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 13px 16px; border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .oac-title-row { display: flex; align-items: center; gap: 10px; }
+    .oac-badge {
+      font-family: var(--mono); font-size: 10px; font-weight: 500;
+      padding: 3px 8px; border-radius: 4px;
+      background: var(--acc2); color: var(--acc); letter-spacing: .06em;
+    }
+    .oac-name-input {
+      background: transparent; border: none; border-bottom: 1px solid var(--border2);
+      color: var(--text); font-family: var(--sans); font-size: 14px; font-weight: 500;
+      padding: 2px 4px; outline: none; width: 140px;
+    }
+    .oac-name-input:focus { border-bottom-color: var(--acc); }
+    .oac-chevron { font-size: 14px; color: var(--muted); transition: transform .2s; }
+    .oac-card.open .oac-chevron { transform: rotate(180deg); }
+    .oac-body { display: none; padding: 16px; }
+    .oac-card.open .oac-body { display: block; }
+
+    /* ─── ACCU BLOK ─── */
+    .accu-blok {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px; margin-bottom: 12px;
+    }
+    .accu-title { font-family: var(--mono); font-size: 10px; color: var(--acc); letter-spacing: .08em; margin-bottom: 12px; }
+    .accu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .accu-item label { font-size: 11px; color: var(--muted); display: block; margin-bottom: 4px; }
+    .accu-item input[type=number] {
+      width: 100%; background: var(--surface); border: 1px solid var(--border);
+      border-radius: 6px; text-align: right; padding: 9px 10px; font-size: 16px;
+    }
+
+    /* ─── MIC ROW ─── */
+    .mic-row { display: flex; gap: 8px; align-items: flex-start; }
+    .mic-row textarea { flex: 1; }
+    .mic-btn {
+      width: 42px; height: 42px; flex-shrink: 0;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; transition: all .18s;
+    }
+    .mic-btn.rec { background: var(--acc2); border-color: var(--acc); animation: pulse-rec 1.2s infinite; }
+    @keyframes pulse-rec {
+      0%,100% { box-shadow: 0 0 0 0 rgba(247,150,70,.5); }
+      50%      { box-shadow: 0 0 0 8px rgba(247,150,70,0); }
+    }
+
+    /* ─── ADD BTN ─── */
+    .add-btn {
+      width: 100%; padding: 12px;
+      background: transparent; border: 1px dashed var(--border2);
+      border-radius: 8px; color: var(--muted);
+      font-family: var(--mono); font-size: 12px; letter-spacing: .05em;
+      cursor: pointer; transition: all .18s; margin-top: 4px;
+    }
+    .add-btn:active { border-color: var(--acc); color: var(--acc); }
+
+    /* ─── DEL BTN ─── */
+    .del-btn {
+      padding: 5px 10px; background: transparent;
+      border: 1px solid rgba(239,68,68,.3); border-radius: 5px;
+      color: var(--red); font-size: 12px; cursor: pointer;
+    }
+
+    /* ─── LOCATIE TAB ─── */
+    .date-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* ─── AFWIJKINGEN TAB ─── */
+    .afwijk-card {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px; margin-bottom: 12px;
+    }
+    .afwijk-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .afwijk-nr { font-family: var(--mono); font-size: 11px; color: var(--acc); }
+    .prio-row { display: flex; gap: 6px; margin-top: 10px; }
+    .pbtn {
+      flex: 1; padding: 8px 4px; border-radius: 6px;
+      border: 1px solid var(--border); background: transparent;
+      font-size: 11px; font-family: var(--mono); cursor: pointer;
+      color: var(--muted); transition: all .15s;
+    }
+    .pbtn.ok   { background: var(--green2); border-color: rgba(34,197,94,.4); color: var(--green); }
+    .pbtn.warn { background: var(--amber2); border-color: rgba(245,158,11,.4); color: var(--amber); }
+    .pbtn.crit { background: var(--red2);   border-color: rgba(239,68,68,.4);  color: var(--red); }
+
+    /* ─── VERSTUUR BAR ─── */
+    .send-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 300;
+      background: rgba(17,19,20,.97);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      padding: 12px 18px;
+      padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+    .send-btn {
+      width: 100%; padding: 15px;
+      background: var(--acc); border: none; border-radius: 10px;
+      color: #111; font-family: var(--mono); font-size: 14px; font-weight: 500;
+      letter-spacing: .06em; cursor: pointer; transition: opacity .18s;
+    }
+    .send-btn:active { opacity: .8; }
+    .send-btn:disabled { opacity: .4; }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed; bottom: 90px; left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--green); color: #111;
+      padding: 11px 22px; border-radius: 8px;
+      font-family: var(--mono); font-size: 12px; font-weight: 500;
+      opacity: 0; transition: all .25s; pointer-events: none; z-index: 999;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .toast.err  { background: var(--red); color: #fff; }
+
+    /* ─── SERVER MODAL ─── */
+    .modal-bg {
+      display: none; position: fixed; inset: 0; z-index: 500;
+      background: rgba(0,0,0,.7); backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      align-items: flex-end; padding: 0;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      width: 100%; background: var(--surface);
+      border-radius: 16px 16px 0 0;
+      border: 1px solid var(--border);
+      padding: 24px 20px calc(24px + env(safe-area-inset-bottom));
+    }
+    .modal-title { font-family: var(--mono); font-size: 12px; color: var(--acc); letter-spacing: .1em; margin-bottom: 18px; }
+    .modal-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .modal-row input { flex: 1; }
+    .modal-close {
+      margin-top: 8px; width: 100%; padding: 13px;
+      background: transparent; border: 1px solid var(--border2);
+      border-radius: 8px; color: var(--muted);
+      font-family: var(--mono); font-size: 12px; cursor: pointer;
+    }
+
+    /* ─── SERVER CONFIG TAB ─── */
+    .info-block {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 16px; margin-bottom: 14px;
+    }
+    .info-block p { font-size: 13px; color: var(--muted); line-height: 1.7; }
+    .info-block code { font-family: var(--mono); font-size: 12px; color: var(--acc); }
+    .step-row { display: flex; gap: 12px; margin-bottom: 12px; align-items: flex-start; }
+    .step-nr {
+      width: 24px; height: 24px; flex-shrink: 0;
+      background: var(--acc2); border-radius: 50%;
+      font-family: var(--mono); font-size: 11px; color: var(--acc);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .step-txt { font-size: 13px; line-height: 1.6; color: var(--muted); padding-top: 2px; }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="app-brand">
+    <div class="app-brand-main">PO OAI</div>
+    <div class="app-brand-sub" id="hdr-datum">laden...</div>
+  </div>
+  <div class="header-right">
+    <div class="conn-pill" id="connPill" onclick="openModal()">
+      <div class="conn-dot"></div>
+      <span id="connTxt">offline</span>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="scroll-tabs" id="tabs">
+  <button class="stab active" onclick="goTab(0,this)">LOCATIE</button>
+  <button class="stab"        onclick="goTab(1,this)">OAC</button>
+  <button class="stab"        onclick="goTab(2,this)">AFWIJKINGEN</button>
+  <button class="stab"        onclick="goTab(3,this)">SERVER</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 0 — LOCATIE
+══════════════════════════════════════════ -->
+<div class="page active" id="pg0">
+  <div class="sec-head">Inspectiegegevens</div>
+
+  <div class="field">
+    <div class="field-lbl">Klant / Opdrachtgever</div>
+    <input type="text" id="klant" placeholder="Naam organisatie">
+  </div>
+  <div class="field">
+    <div class="field-lbl">Locatie / Pand</div>
+    <input type="text" id="locatie" placeholder="Naam gebouw of adres">
+  </div>
+  <div class="field">
+    <div class="field-lbl">Datum &amp; Tijd</div>
+    <div class="date-row">
+      <input type="date" id="datum">
+      <input type="time" id="tijd">
+    </div>
+  </div>
+  <div class="field">
+    <div class="field-lbl">Technicus</div>
+    <input type="text" id="technicus" value="Ronald">
+  </div>
+  <div class="field">
+    <div class="field-lbl">Type inspectie</div>
+    <select id="type-insp">
+      <option value="">— selecteer —</option>
+      <option value="Periodieke opname OAI">Periodieke opname OAI</option>
+      <option value="Jaarlijkse inspectie NEN 2575">Jaarlijkse inspectie NEN 2575</option>
+      <option value="Oplevering nieuw systeem">Oplevering nieuw systeem</option>
+      <option value="Storingsbeoordeling">Storingsbeoordeling</option>
+    </select>
+  </div>
+  <div class="field">
+    <div class="field-lbl">Systeem / Type centrale</div>
+    <input type="text" id="systeem" placeholder="bv. Variodyn ONE, D1, PRAESENSA">
+  </div>
+
+  <div class="sec-head" style="margin-top:8px">Opmerking (locatie)</div>
+  <div class="field">
+    <div class="mic-row">
+      <textarea id="opm-locatie" rows="3" placeholder="Algemene opmerking of bijzonderheden..."></textarea>
+      <button class="mic-btn" onclick="mic('opm-locatie',this)">🎤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 1 — OAC
+══════════════════════════════════════════ -->
+<div class="page" id="pg1">
+  <div class="sec-head">
+    <span>Centrales</span>
+    <button class="add-btn" style="width:auto;padding:5px 14px;margin:0;border-style:solid;font-size:11px" onclick="addOAC()">+ OAC</button>
+  </div>
+
+  <div id="oac-container"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 2 — AFWIJKINGEN
+══════════════════════════════════════════ -->
+<div class="page" id="pg2">
+  <div class="sec-head">
+    <span>Bevindingen / Afwijkingen</span>
+    <span id="bev-badge" style="font-family:var(--mono);font-size:11px;color:var(--muted)">0</span>
+  </div>
+
+  <!-- Vaste velden uit het formulier -->
+  <div class="field">
+    <div class="field-lbl">Geen luidspreker (locatie/zone)</div>
+    <div class="mic-row">
+      <textarea id="geen-ls" rows="2" placeholder="Beschrijf welke luidsprekers ontbreken..."></textarea>
+      <button class="mic-btn" onclick="mic('geen-ls',this)">🎤</button>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field-lbl">Luidspreker werkt niet (locatie/zone)</div>
+    <div class="mic-row">
+      <textarea id="ls-defect" rows="2" placeholder="Locatie defecte luidspreker(s)..."></textarea>
+      <button class="mic-btn" onclick="mic('ls-defect',this)">🎤</button>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field-lbl">Geen toegang</div>
+    <div class="mic-row">
+      <textarea id="geen-toegang" rows="2" placeholder="Ruimte(s) niet toegankelijk..."></textarea>
+      <button class="mic-btn" onclick="mic('geen-toegang',this)">🎤</button>
+    </div>
+  </div>
+  <div class="field">
+    <div class="field-lbl">Overige opmerking</div>
+    <div class="mic-row">
+      <textarea id="opm-overig" rows="2" placeholder="Vrije opmerking..."></textarea>
+      <button class="mic-btn" onclick="mic('opm-overig',this)">🎤</button>
+    </div>
+  </div>
+
+  <div class="sec-head" style="margin-top:4px">Extra bevindingen</div>
+  <div id="bev-list"></div>
+  <button class="add-btn" onclick="addBev()">+ bevinding toevoegen</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB 3 — SERVER
+══════════════════════════════════════════ -->
+<div class="page" id="pg3">
+  <div class="sec-head">Verbinding</div>
+
+  <div class="info-block">
+    <div class="step-row"><div class="step-nr">1</div><div class="step-txt">Start <code>server.js</code> op je laptop (<code>npm start</code>). Het terminal-venster toont je IP-adres.</div></div>
+    <div class="step-row"><div class="step-nr">2</div><div class="step-txt">Vul het IP hieronder in. Zorg dat je iPhone op hetzelfde wifi-netwerk zit als je laptop.</div></div>
+    <div class="step-row"><div class="step-nr">3</div><div class="step-txt">Tik op <strong style="color:var(--text)">Verbind</strong> — als het werkt wordt de pill groen.</div></div>
+    <div class="step-row"><div class="step-nr">4</div><div class="step-txt">Na het invullen: tik <strong style="color:var(--text)">Verstuur naar NEN Tool</strong> onderaan.</div></div>
+  </div>
+
+  <div class="field">
+    <div class="field-lbl">Server adres (laptop IP)</div>
+    <div class="modal-row" style="margin:0">
+      <input type="text" id="srv-url-main" placeholder="http://192.168.1.x:3456" inputmode="url" style="flex:1">
+      <button class="add-btn" style="width:auto;padding:11px 14px;margin:0;border-style:solid" onclick="testConn()">Verbind</button>
+    </div>
+  </div>
+
+  <div class="sec-head" style="margin-top:8px">GitHub Pages instructie</div>
+  <div class="info-block">
+    <p>
+      1. Maak een nieuwe repository aan op GitHub (bv. <code>evacsafe-veld</code>)<br>
+      2. Upload dit <code>index.html</code> bestand als enige bestand<br>
+      3. Ga naar Settings → Pages → Branch: <code>main</code> → Save<br>
+      4. Je app staat op: <code>https://[jouw-naam].github.io/evacsafe-veld/</code><br>
+      5. Sla die link op als bladwijzer op je iPhone
+    </p>
+  </div>
+
+  <div class="field">
+    <div class="field-lbl">Lokale data (opgeslagen als offline)</div>
+    <button class="add-btn" onclick="clearLocal()">🗑 Wis lokale backup</button>
+  </div>
+</div>
+
+<!-- VERSTUUR BAR -->
+<div class="send-bar">
+  <button class="send-btn" id="sendBtn" onclick="verstuur()">▶ VERSTUUR NAAR NEN TOOL</button>
+</div>
+
+<!-- SERVER MODAL (snel bereikbaar via pill) -->
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title">SERVERADRES</div>
+    <div class="modal-row">
+      <input type="text" id="srv-url-modal" placeholder="http://192.168.1.x:3456" inputmode="url">
+      <button class="add-btn" style="width:auto;padding:11px 14px;margin:0;border-style:solid" onclick="testConn()">Test</button>
+    </div>
+    <button class="modal-close" onclick="closeModal()">Sluiten</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════
+// INIT
+// ═══════════════════════════
+const now = new Date();
+document.getElementById('datum').value = now.toISOString().split('T')[0];
+document.getElementById('tijd').value  = now.toTimeString().slice(0,5);
+document.getElementById('hdr-datum').textContent =
+  now.toLocaleDateString('nl-NL',{weekday:'short',day:'numeric',month:'long'}) + ' · ' +
+  now.toTimeString().slice(0,5);
+
+// Server URL laden
+let srvUrl = localStorage.getItem('ev_srv') || '';
+document.getElementById('srv-url-main').value  = srvUrl;
+document.getElementById('srv-url-modal').value = srvUrl;
+['srv-url-main','srv-url-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('input', function(){
+    srvUrl = this.value.trim();
+    document.getElementById('srv-url-main').value  = srvUrl;
+    document.getElementById('srv-url-modal').value = srvUrl;
+    localStorage.setItem('ev_srv', srvUrl);
+  });
+});
+
+// ═══════════════════════════
+// TABS
+// ═══════════════════════════
+function goTab(idx, btn) {
+  document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  btn.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+}
+
+// ═══════════════════════════
+// OAC CENTRALES
+// ═══════════════════════════
+let oacs = [];
+let oacNr = 1;
+
+function addOAC() {
+  const id = Date.now();
+  oacs.push({
+    id, nr: oacNr++, naam: '',
+    laadspanning: '', locVerd: '', benamingVerd: '', groepNr: '', typeZek: '',
+    accuA: '', accuA_05: '', accuA_1: '',
+    accuB: '', accuB_05: '', accuB_1: '',
+    datumPlaatsing: '', rb: '', temp: '', ruststroom: '', alarmstroom: '',
+    testen: { ond230: false, ondAccu: false, charging: false, havarie: false }
+  });
+  renderOACs();
+  // Scroll naar nieuw blok
+  setTimeout(() => {
+    document.getElementById('oac-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 100);
+}
+
+function delOAC(id) {
+  if (!confirm('OAC verwijderen?')) return;
+  oacs = oacs.filter(o => o.id !== id);
+  renderOACs();
+}
+
+function toggleOAC(id) {
+  const card = document.getElementById('oac-' + id);
+  card.classList.toggle('open');
+}
+
+function setOAC(id, field, val) {
+  const o = oacs.find(o => o.id === id);
+  if (o) o[field] = val;
+}
+function setOACTest(id, key, val) {
+  const o = oacs.find(o => o.id === id);
+  if (o) o.testen[key] = val;
+}
+
+function toggleCheckRow(el, id, key) {
+  el.classList.toggle('checked');
+  const checked = el.classList.contains('checked');
+  el.querySelector('.check-box').textContent = checked ? '✓' : '';
+  setOACTest(id, key, checked);
+}
+
+function renderOACs() {
+  const c = document.getElementById('oac-container');
+  if (oacs.length === 0) {
+    c.innerHTML = `<div style="text-align:center;padding:48px 20px;color:var(--muted);font-size:13px;font-family:var(--mono)">Nog geen centrales.<br>Tik op + OAC om te beginnen.</div>`;
+    return;
+  }
+  c.innerHTML = oacs.map(o => `
+    <div class="oac-card open" id="oac-${o.id}">
+      <div class="oac-head" onclick="toggleOAC(${o.id})">
+        <div class="oac-title-row">
+          <div class="oac-badge">OAC ${o.nr}</div>
+          <input class="oac-name-input" type="text" value="${o.naam}" placeholder="Naam centrale"
+            onclick="event.stopPropagation()"
+            oninput="setOAC(${o.id},'naam',this.value)">
+        </div>
+        <span class="oac-chevron">▾</span>
+      </div>
+      <div class="oac-body">
+
+        <!-- Voeding -->
+        <div class="sec-head" style="margin-top:0">Voeding</div>
+        <div class="meting-row">
+          <span class="mlbl">Laadspanning</span>
+          <input type="number" step="0.1" value="${o.laadspanning}" placeholder="—"
+            oninput="setOAC(${o.id},'laadspanning',this.value)">
+          <span class="munit">V</span>
+        </div>
+        <div class="field"><div class="field-lbl">Locatie verdeelkast</div>
+          <input type="text" value="${o.locVerd}" placeholder="—" oninput="setOAC(${o.id},'locVerd',this.value)"></div>
+        <div class="field"><div class="field-lbl">Benaming verdeelkast</div>
+          <input type="text" value="${o.benamingVerd}" placeholder="—" oninput="setOAC(${o.id},'benamingVerd',this.value)"></div>
+        <div class="field"><div class="field-lbl">Groep nr.</div>
+          <input type="text" value="${o.groepNr}" placeholder="—" oninput="setOAC(${o.id},'groepNr',this.value)"></div>
+        <div class="field"><div class="field-lbl">Type zekering / automaat</div>
+          <input type="text" value="${o.typeZek}" placeholder="—" oninput="setOAC(${o.id},'typeZek',this.value)"></div>
+
+        <!-- Accu A -->
+        <div class="accu-blok">
+          <div class="accu-title">ACCU A</div>
+          <div class="accu-grid">
+            <div class="accu-item"><label>Spanning (V)</label>
+              <input type="number" step="0.1" value="${o.accuA}" placeholder="—"
+                oninput="setOAC(${o.id},'accuA',this.value)"></div>
+            <div class="accu-item"><label>Na 0,5 h (V)</label>
+              <input type="number" step="0.1" value="${o.accuA_05}" placeholder="—"
+                oninput="setOAC(${o.id},'accuA_05',this.value)"></div>
+            <div class="accu-item"><label>Na 1 h (V)</label>
+              <input type="number" step="0.1" value="${o.accuA_1}" placeholder="—"
+                oninput="setOAC(${o.id},'accuA_1',this.value)"></div>
+          </div>
+        </div>
+
+        <!-- Accu B -->
+        <div class="accu-blok">
+          <div class="accu-title">ACCU B</div>
+          <div class="accu-grid">
+            <div class="accu-item"><label>Spanning (V)</label>
+              <input type="number" step="0.1" value="${o.accuB}" placeholder="—"
+                oninput="setOAC(${o.id},'accuB',this.value)"></div>
+            <div class="accu-item"><label>Na 0,5 h (V)</label>
+              <input type="number" step="0.1" value="${o.accuB_05}" placeholder="—"
+                oninput="setOAC(${o.id},'accuB_05',this.value)"></div>
+            <div class="accu-item"><label>Na 1 h (V)</label>
+              <input type="number" step="0.1" value="${o.accuB_1}" placeholder="—"
+                oninput="setOAC(${o.id},'accuB_1',this.value)"></div>
+          </div>
+        </div>
+
+        <!-- Overige metingen -->
+        <div class="sec-head">Overige metingen</div>
+        <div class="meting-row">
+          <span class="mlbl">Datum plaatsing accu's</span>
+          <input type="text" value="${o.datumPlaatsing}" placeholder="—" style="width:120px;text-align:right;font-family:var(--mono);font-size:13px"
+            oninput="setOAC(${o.id},'datumPlaatsing',this.value)">
+        </div>
+        <div class="meting-row">
+          <span class="mlbl">Rb (inwendige weerstand)</span>
+          <input type="number" step="0.1" value="${o.rb}" placeholder="—"
+            oninput="setOAC(${o.id},'rb',this.value)">
+          <span class="munit">mΩ</span>
+        </div>
+        <div class="meting-row">
+          <span class="mlbl">Temperatuur</span>
+          <input type="number" step="0.5" value="${o.temp}" placeholder="—"
+            oninput="setOAC(${o.id},'temp',this.value)">
+          <span class="munit">°C</span>
+        </div>
+        <div class="meting-row">
+          <span class="mlbl">Ruststroom</span>
+          <input type="number" step="0.01" value="${o.ruststroom}" placeholder="—"
+            oninput="setOAC(${o.id},'ruststroom',this.value)">
+          <span class="munit">A</span>
+        </div>
+        <div class="meting-row">
+          <span class="mlbl">Alarmstroom</span>
+          <input type="number" step="0.01" value="${o.alarmstroom}" placeholder="—"
+            oninput="setOAC(${o.id},'alarmstroom',this.value)">
+          <span class="munit">A</span>
+        </div>
+
+        <!-- Centrale testen -->
+        <div class="sec-head" style="margin-top:8px">Centrale testen</div>
+        <div class="check-list">
+          <div class="check-row ${o.testen.ond230?'checked':''}" onclick="toggleCheckRow(this,${o.id},'ond230')">
+            <div class="check-box">${o.testen.ond230?'✓':''}</div>
+            <div class="check-lbl">Onderbreking 230 V</div>
+          </div>
+          <div class="check-row ${o.testen.ondAccu?'checked':''}" onclick="toggleCheckRow(this,${o.id},'ondAccu')">
+            <div class="check-box">${o.testen.ondAccu?'✓':''}</div>
+            <div class="check-lbl">Onderbreking accu's</div>
+          </div>
+          <div class="check-row ${o.testen.charging?'checked':''}" onclick="toggleCheckRow(this,${o.id},'charging')">
+            <div class="check-box">${o.testen.charging?'✓':''}</div>
+            <div class="check-lbl">Charging accu's</div>
+          </div>
+          <div class="check-row ${o.testen.havarie?'checked':''}" onclick="toggleCheckRow(this,${o.id},'havarie')">
+            <div class="check-box">${o.testen.havarie?'✓':''}</div>
+            <div class="check-lbl">Havarie schakeling</div>
+          </div>
+        </div>
+
+        <button class="del-btn" style="margin-top:8px" onclick="delOAC(${o.id})">✕ OAC ${o.nr} verwijderen</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Init met 1 OAC
+addOAC();
+
+// ═══════════════════════════
+// BEVINDINGEN
+// ═══════════════════════════
+let bevs = [], bevNr = 1;
+
+function addBev() {
+  const id = Date.now();
+  bevs.push({ id, nr: bevNr++, omschr: '', prio: null });
+  renderBevs();
+}
+function delBev(id) { bevs = bevs.filter(b=>b.id!==id); renderBevs(); }
+function setBevTxt(id, val) { const b=bevs.find(b=>b.id===id); if(b) b.omschr=val; }
+function setBevPrio(id, p)  { const b=bevs.find(b=>b.id===id); if(b) { b.prio = b.prio===p?null:p; renderBevs(); } }
+
+function renderBevs() {
+  document.getElementById('bev-badge').textContent = bevs.length;
+  const l = document.getElementById('bev-list');
+  l.innerHTML = bevs.map(b => `
+    <div class="afwijk-card">
+      <div class="afwijk-head">
+        <span class="afwijk-nr">BEV-${String(b.nr).padStart(3,'0')}</span>
+        <button class="del-btn" onclick="delBev(${b.id})">✕</button>
+      </div>
+      <div class="mic-row">
+        <textarea rows="2" placeholder="Omschrijving..."
+          oninput="setBevTxt(${b.id},this.value)">${b.omschr}</textarea>
+        <button class="mic-btn" onclick="micBev(${b.id},this)">🎤</button>
+      </div>
+      <div class="prio-row">
+        <button class="pbtn ${b.prio==='ok'?'ok':''}"   onclick="setBevPrio(${b.id},'ok')">✓ OK</button>
+        <button class="pbtn ${b.prio==='warn'?'warn':''}" onclick="setBevPrio(${b.id},'warn')">⚠ LET OP</button>
+        <button class="pbtn ${b.prio==='crit'?'crit':''}" onclick="setBevPrio(${b.id},'crit')">✗ KRITIEK</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ═══════════════════════════
+// SPRAAK
+// ═══════════════════════════
+let curRec = null;
+
+function mic(fieldId, btn) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Spraak niet beschikbaar', true); return; }
+  if (curRec) { curRec.stop(); curRec=null; btn.classList.remove('rec'); return; }
+  const r = new SR(); r.lang='nl-NL'; r.continuous=true; r.interimResults=false;
+  r.onstart  = () => { btn.classList.add('rec'); curRec=r; };
+  r.onresult = e => { const f=document.getElementById(fieldId); for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) f.value+=(f.value?' ':'')+e.results[i][0].transcript; };
+  r.onerror  = () => { btn.classList.remove('rec'); curRec=null; };
+  r.onend    = () => { btn.classList.remove('rec'); curRec=null; };
+  r.start();
+}
+
+function micBev(id, btn) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return;
+  if (curRec) { curRec.stop(); btn.classList.remove('rec'); return; }
+  const r = new SR(); r.lang='nl-NL'; r.continuous=true; r.interimResults=false;
+  r.onstart  = () => { btn.classList.add('rec'); curRec=r; };
+  r.onresult = e => {
+    const b=bevs.find(b=>b.id===id); if(!b) return;
+    for(let i=e.resultIndex;i<e.results.length;i++) if(e.results[i].isFinal) b.omschr+=(b.omschr?' ':'')+e.results[i][0].transcript;
+    renderBevs();
+  };
+  r.onerror = () => { btn.classList.remove('rec'); curRec=null; };
+  r.onend   = () => { btn.classList.remove('rec'); curRec=null; };
+  r.start();
+}
+
+// ═══════════════════════════
+// MODAL
+// ═══════════════════════════
+function openModal()  { document.getElementById('modalBg').classList.add('open'); }
+function closeModal(e){ if(!e||e.target===document.getElementById('modalBg')) document.getElementById('modalBg').classList.remove('open'); }
+
+// ═══════════════════════════
+// VERBINDING TEST
+// ═══════════════════════════
+async function testConn() {
+  srvUrl = (document.getElementById('srv-url-main').value || document.getElementById('srv-url-modal').value).trim();
+  if (!srvUrl) { toast('Geen serveradres', true); return; }
+  localStorage.setItem('ev_srv', srvUrl);
+  try {
+    const r = await fetch(srvUrl+'/ping');
+    if (r.ok) {
+      document.getElementById('connPill').className = 'conn-pill ok';
+      document.getElementById('connTxt').textContent = 'online';
+      toast('✓ Verbonden met server');
+    } else { throw new Error(); }
+  } catch { toast('Server niet bereikbaar', true); }
+}
+
+// ═══════════════════════════
+// DATA VERZAMELEN
+// ═══════════════════════════
+function collect() {
+  return {
+    _versie: '2.0',
+    _timestamp: new Date().toISOString(),
+    locatie: {
+      klant:      document.getElementById('klant').value,
+      locatie:    document.getElementById('locatie').value,
+      datum:      document.getElementById('datum').value,
+      tijd:       document.getElementById('tijd').value,
+      technicus:  document.getElementById('technicus').value,
+      type:       document.getElementById('type-insp').value,
+      systeem:    document.getElementById('systeem').value,
+      opmerking:  document.getElementById('opm-locatie').value,
+    },
+    oacs: oacs,
+    afwijkingen: {
+      geen_luidspreker: document.getElementById('geen-ls').value,
+      ls_werkt_niet:    document.getElementById('ls-defect').value,
+      geen_toegang:     document.getElementById('geen-toegang').value,
+      overig:           document.getElementById('opm-overig').value,
+      extra:            bevs,
+    }
+  };
+}
+
+// ═══════════════════════════
+// VERSTUREN
+// ═══════════════════════════
+async function verstuur() {
+  const data = collect();
+  const url  = srvUrl || localStorage.getItem('ev_srv') || '';
+  localStorage.setItem('ev_pending', JSON.stringify(data));
+
+  if (!url) { toast('Stel serveradres in via SERVER tabblad', true); return; }
+
+  const btn = document.getElementById('sendBtn');
+  btn.disabled = true; btn.textContent = '⏳ VERSTUREN...';
+
+  try {
+    const r = await fetch(url+'/data', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    if (r.ok) { localStorage.removeItem('ev_pending'); toast('✓ Data verstuurd naar NEN tool'); }
+    else toast('Serverfout '+r.status, true);
+  } catch { toast('Opgeslagen lokaal — geen verbinding', false); }
+
+  btn.disabled = false; btn.textContent = '▶ VERSTUUR NAAR NEN TOOL';
+}
+
+// ═══════════════════════════
+// HELPERS
+// ═══════════════════════════
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className   = 'toast'+(err?' err':'')+' show';
+  setTimeout(()=>t.classList.remove('show'), 3200);
+}
+
+function clearLocal() {
+  localStorage.removeItem('ev_pending');
+  toast('Lokale backup gewist');
+}
+
+// Check verbinding bij start
+if (srvUrl) testConn().catch(()=>{});
+</script>
+</body>
+</html>
