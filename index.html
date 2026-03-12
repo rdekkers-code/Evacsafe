@@ -322,6 +322,36 @@
       display: flex; align-items: center; justify-content: center;
     }
     .step-txt { font-size: 13px; line-height: 1.6; color: var(--muted); padding-top: 2px; }
+
+    /* ─── DAGBOEK ─── */
+    .dag-note {
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 8px; padding: 13px; margin-bottom: 10px;
+    }
+    .dag-note-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 8px;
+    }
+    .dag-note-time { font-family: var(--mono); font-size: 10px; color: var(--acc); letter-spacing: .06em; }
+    .dag-note textarea {
+      border-color: transparent; background: transparent; padding: 4px 0;
+      font-size: 14px; line-height: 1.6; min-height: 60px;
+    }
+    .dag-note textarea:focus { border-color: var(--acc); background: var(--surface); padding: 8px 10px; border-radius: 6px; }
+    .dag-note-row { display: flex; gap: 8px; align-items: flex-start; }
+    .dag-note-row textarea { flex: 1; }
+    .dag-empty { text-align: center; padding: 56px 20px; color: var(--muted); font-size: 13px; font-family: var(--mono); line-height: 1.8; }
+    .dag-add-fab {
+      position: fixed; bottom: 80px; right: 18px; z-index: 250;
+      width: 52px; height: 52px; border-radius: 50%;
+      background: var(--acc); border: none; color: #111;
+      font-size: 24px; font-weight: 500; cursor: pointer;
+      display: none; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(247,150,70,.4);
+      transition: opacity .18s;
+    }
+    .dag-add-fab.visible { display: flex; }
+    .dag-add-fab:active { opacity: .8; }
   </style>
 </head>
 <body>
@@ -346,6 +376,7 @@
   <button class="stab"        onclick="goTab(1,this)">OAC</button>
   <button class="stab"        onclick="goTab(2,this)">AFWIJKINGEN</button>
   <button class="stab"        onclick="goTab(3,this)">SERVER</button>
+  <button class="stab"        onclick="goTab(4,this)">DAGBOEK</button>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -491,6 +522,22 @@
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     TAB 4 — DAGBOEK
+══════════════════════════════════════════ -->
+<div class="page" id="pg4">
+  <div class="sec-head">
+    <span>Dagboek</span>
+    <span id="dag-badge" style="font-family:var(--mono);font-size:11px;color:var(--muted)">0 notities</span>
+  </div>
+  <div id="dag-list">
+    <div class="dag-empty">Nog geen notities.<br>Tik op <strong style="color:var(--acc)">+</strong> om te beginnen.</div>
+  </div>
+</div>
+
+<!-- FAB voor dagboek (alleen zichtbaar op dagboek-tab) -->
+<button class="dag-add-fab" id="dagFab" onclick="addDagNote()">+</button>
+
 <!-- VERSTUUR BAR -->
 <div class="send-bar">
   <button class="send-btn" id="sendBtn" onclick="verstuur()">▶ VERSTUUR NAAR NEN TOOL</button>
@@ -543,6 +590,8 @@ function goTab(idx, btn) {
   document.querySelectorAll('.stab').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   btn.scrollIntoView({behavior:'smooth', inline:'center', block:'nearest'});
+  document.getElementById('dagFab').classList.toggle('visible', idx === 4);
+  document.getElementById('sendBtn').style.display = idx === 4 ? 'none' : '';
 }
 
 // ═══════════════════════════
@@ -842,7 +891,8 @@ function collect() {
       geen_toegang:     document.getElementById('geen-toegang').value,
       overig:           document.getElementById('opm-overig').value,
       extra:            bevs,
-    }
+    },
+    dagboek: dagNotes,
   };
 }
 
@@ -886,6 +936,88 @@ function clearLocal() {
   localStorage.removeItem('ev_pending');
   toast('Lokale backup gewist');
 }
+
+// ═══════════════════════════
+// DAGBOEK
+// ═══════════════════════════
+let dagNotes = JSON.parse(localStorage.getItem('ev_dag') || '[]');
+
+function saveDag() {
+  localStorage.setItem('ev_dag', JSON.stringify(dagNotes));
+}
+
+function addDagNote() {
+  const now = new Date();
+  const id  = Date.now();
+  const timeStr = now.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  const dateStr = now.toLocaleDateString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short' });
+  dagNotes.unshift({ id, timestamp: dateStr + ' · ' + timeStr, tekst: '' });
+  saveDag();
+  renderDag();
+  // Focus op het nieuwe tekstveld
+  setTimeout(() => {
+    const ta = document.querySelector(`#dag-${id} textarea`);
+    if (ta) ta.focus();
+  }, 50);
+}
+
+function delDagNote(id) {
+  dagNotes = dagNotes.filter(n => n.id !== id);
+  saveDag();
+  renderDag();
+}
+
+function setDagTekst(id, val) {
+  const n = dagNotes.find(n => n.id === id);
+  if (n) { n.tekst = val; saveDag(); }
+}
+
+function micDag(id, btn) {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) { toast('Spraak niet beschikbaar', true); return; }
+  if (curRec) { curRec.stop(); btn.classList.remove('rec'); curRec = null; return; }
+  const r = new SR(); r.lang = 'nl-NL'; r.continuous = true; r.interimResults = false;
+  r.onstart  = () => { btn.classList.add('rec'); curRec = r; };
+  r.onresult = e => {
+    const n = dagNotes.find(n => n.id === id); if (!n) return;
+    for (let i = e.resultIndex; i < e.results.length; i++) {
+      if (e.results[i].isFinal) n.tekst += (n.tekst ? ' ' : '') + e.results[i][0].transcript;
+    }
+    saveDag();
+    // Tekstveld live bijwerken
+    const ta = document.querySelector(`#dag-${id} textarea`);
+    if (ta) ta.value = n.tekst;
+  };
+  r.onerror = () => { btn.classList.remove('rec'); curRec = null; };
+  r.onend   = () => { btn.classList.remove('rec'); curRec = null; };
+  r.start();
+}
+
+function renderDag() {
+  const badge = document.getElementById('dag-badge');
+  const list  = document.getElementById('dag-list');
+  badge.textContent = dagNotes.length + (dagNotes.length === 1 ? ' notitie' : ' notities');
+  if (dagNotes.length === 0) {
+    list.innerHTML = `<div class="dag-empty">Nog geen notities.<br>Tik op <strong style="color:var(--acc)">+</strong> om te beginnen.</div>`;
+    return;
+  }
+  list.innerHTML = dagNotes.map(n => `
+    <div class="dag-note" id="dag-${n.id}">
+      <div class="dag-note-meta">
+        <span class="dag-note-time">${n.timestamp}</span>
+        <button class="del-btn" onclick="delDagNote(${n.id})">✕</button>
+      </div>
+      <div class="dag-note-row">
+        <textarea rows="3" placeholder="Typ of spreek je notitie..."
+          oninput="setDagTekst(${n.id},this.value)">${n.tekst}</textarea>
+        <button class="mic-btn" onclick="micDag(${n.id},this)">🎤</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Init dagboek
+renderDag();
 
 // Check verbinding bij start
 if (srvUrl) testConn().catch(()=>{});
